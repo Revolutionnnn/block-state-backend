@@ -1,0 +1,46 @@
+// CREAR UNA PROPIEDAD EN LA BASE DE DATOS
+POST http://localhost:8000/properties
+Content-Type: application/json
+
+{
+  "name": "Casa de lujo en el lago",
+  "description": "Una hermosa y moderna casa con vistas al lago.",
+  "image": "https://via.placeholder.com/400",
+  "location": "Lago Azul, Ciudad Verde",
+  "price": "500000",
+  "address": "123 Calle del Lago, Ciudad Verde",
+  "area": 350,
+  "rooms": 4,
+  "bathrooms": 3,
+  "garage": true,
+  "is_sold": false
+}
+
+// VER LAS PROPIEDADES
+GET http://localhost:8000/properties
+
+// VER UNA PROPIEDAD POR ID
+GET http://localhost:8000/properties/1
+
+// ACTUALIZAR LA PROPIEDAD
+PUT http://localhost:8000/properties/1
+Content-Type: application/json
+
+{
+  "name": "Casa Actualizada",
+  "description": "Descripción actualizada de la casa.",
+  "image": "https://via.placeholder.com/400",
+  "location": "Ubicación actualizada",
+  "price": "600000",
+  "address": "123 Calle Actualizada",
+  "area": 350,
+  "rooms": 4,
+  "bathrooms": 2,
+  "garage": true,
+  "is_sold": false
+}
+
+// PETICION PARA VER LOS CAMBIOS
+GET http://localhost:8000/properties/1/changes
+
+
