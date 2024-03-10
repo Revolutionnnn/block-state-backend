@@ -5,15 +5,31 @@ from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from fastapi.middleware.cors import CORSMiddleware
 
 Base = declarative_base()
+
+app = FastAPI()
+
+origins = [
+    "http://localhost:3000",  # Asumiendo que tu cliente Vue.js corre en el puerto 3000
+    "http://localhost:8080",  # Otro puerto común para desarrollos frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir todos los métodos
+    allow_headers=["*"],  # Permitir todos los encabezados
+)
 
 class Property(Base):
     __tablename__ = 'properties'
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
-    image = Column(String)
+    image = Column(String, default=None)
     location = Column(String)
     price = Column(String)
     address = Column(String)
@@ -42,16 +58,17 @@ Property.changes = relationship("PropertyChangeLog", order_by=PropertyChangeLog.
 
 
 class RealEstateModel(BaseModel):
+    id: Optional[int] = None 
     name: str
     description: str
-    image: str
+    image: Optional[str] = None 
     location: str
     price: str
     address: str
     area: int
     rooms: int
     bathrooms: int
-    garage: bool
+    garage: bool = False
     is_sold: bool = False
 
 class PropertyChangeLogModel(BaseModel):
@@ -70,8 +87,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
-
 def get_db():
     db = SessionLocal()
     try:
@@ -79,13 +94,16 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/properties")
+@app.post("/properties/create")
 async def create_property(property: RealEstateModel, db: Session = Depends(get_db)):
-    db_property = Property(**property.dict())
-    db.add(db_property)
-    db.commit()
-    db.refresh(db_property)
-    return {"message": "Propiedad creada exitosamente", "property_id": db_property.id}
+    try:
+      db_property = Property(**property.dict())
+      db.add(db_property)
+      db.commit()
+      db.refresh(db_property)
+      return {"message": "Propiedad creada exitosamente", "property_id": db_property.id}
+    except Exception as e:
+      return {f"Error: {e}"}
 
 @app.get("/properties", response_model=List[RealEstateModel])
 async def read_properties(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
